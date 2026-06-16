@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git — Field Notes</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+ 
+<nav id="navbar">
+  <header>
+    <span class="brand-mark">$</span> git docs
+  </header>
+  <a class="nav-link" href="#Why_Git">Why Git</a>
+  <a class="nav-link" href="#Getting_Started">Getting Started</a>
+  <a class="nav-link" href="#Snapshots_and_Commits">Snapshots and Commits</a>
+  <a class="nav-link" href="#Branching">Branching</a>
+  <a class="nav-link" href="#Merging">Merging</a>
+  <a class="nav-link" href="#Remotes">Remotes</a>
+  <a class="nav-link" href="#Undoing_Things">Undoing Things</a>
+</nav>
+ 
+<main id="main-doc">
+ 
+  <section class="main-section" id="Why_Git">
+    <header>Why Git</header>
+    <p>Git is a distributed version control system. Every clone of a repository is a full copy of the project's history, not a thin pointer back to a central server. That single design decision shapes almost everything else about how the tool behaves.</p>
+    <p>Because history lives locally, you can commit, branch, and inspect logs on a plane with no signal. Network access only matters the moment you want to share work with someone else, via <code>push</code> or <code>pull</code>.</p>
+    <p>Git tracks content, not files in the way you might expect. Internally, it stores snapshots of your entire project as a graph of objects, and it is extremely good at noticing when two snapshots share most of their data, even across renamed files.</p>
+    <ul>
+      <li>Speed — almost every operation is local disk I/O.</li>
+      <li>Integrity — every object is addressed by a SHA-1 (or SHA-256) hash of its contents.</li>
+      <li>Non-linear workflows — branching and merging are cheap, so they're used constantly rather than avoided.</li>
+    </ul>
+  </section>
+ 
+  <section class="main-section" id="Getting_Started">
+    <header>Getting Started</header>
+    <p>A repository begins with a single command run inside a project folder:</p>
+    <p><code>git init</code></p>
+    <p>This creates a hidden <code>.git</code> directory that holds the entire object database, the staging area, and configuration for that project. Nothing outside that folder is touched.</p>
+    <p>Before anything is committed, it helps to tell Git who you are, since every commit is permanently signed with this identity:</p>
+    <p><code>git config --global user.name "Ada Lovelace"</code></p>
+    <p><code>git config --global user.email "ada@example.com"</code></p>
+    <p>To pull down an existing project instead of starting fresh, use <code>git clone</code> followed by a URL or local path. Cloning copies the full history, not just the latest snapshot.</p>
+  </section>
+ 
+  <section class="main-section" id="Snapshots_and_Commits">
+    <header>Snapshots and Commits</header>
+    <p>Git organizes work around three areas: the working directory where you edit files, the staging area (also called the index) where you assemble the next snapshot, and the repository where finished commits live permanently.</p>
+    <p>Moving a change from the working directory into the staging area is done with:</p>
+    <p><code>git add &lt;file&gt;</code></p>
+    <p>Once staged, a commit seals the snapshot with a message explaining the change:</p>
+    <p><code>git commit -m "Add login validation"</code></p>
+    <p>A good commit message describes intent, not mechanics. "Add login validation" tells a future reader why the change exists; "edited file.js" does not.</p>
+    <p>To see exactly what has changed before staging, <code>git diff</code> compares the working directory against the last commit, while <code>git status</code> gives a higher-level summary of what's tracked, modified, or untracked.</p>
+    <ul>
+      <li><code>git log</code> walks backward through commit history.</li>
+      <li><code>git show &lt;commit&gt;</code> displays the full contents of one commit.</li>
+    </ul>
+  </section>
+ 
+  <section class="main-section" id="Branching">
+    <header>Branching</header>
+    <p>A branch in Git is nothing more than a movable pointer to a commit. There is no separate copy of the project sitting behind it, which is why creating one is nearly instantaneous regardless of project size.</p>
+    <p>Create and switch to a new branch in one step:</p>
+    <p><code>git switch -c feature/payments</code></p>
+    <p>The default branch, often named <code>main</code>, is just a convention, not a special object. Teams frequently keep it protected and require all work to land there through a reviewed merge.</p>
+    <p>Listing branches shows where each pointer currently sits:</p>
+    <p><code>git branch -v</code></p>
+    <p>Because branches are cheap, it's common to create one for every bug fix, experiment, or feature, then discard it the moment it's no longer needed.</p>
+  </section>
+ 
+  <section class="main-section" id="Merging">
+    <header>Merging</header>
+    <p>Merging brings the history of two branches back together. Git looks for the most recent commit they share, then combines everything that happened on each side since that point.</p>
+    <p>When the changes don't overlap, Git resolves the merge automatically and creates a new commit with two parents:</p>
+    <p><code>git merge feature/payments</code></p>
+    <p>When two branches edit the same lines, Git pauses and marks the file with conflict markers, leaving the decision to a human. Resolving a conflict means editing the file to the correct final state, then staging and committing it like any other change.</p>
+    <p>An alternative to merging is rebasing, which rewrites one branch's commits on top of another to produce a straight line of history instead of a fork. It achieves a similar end result through a very different mechanism, and rewrites commit hashes in the process.</p>
+    <ul>
+      <li>Fast-forward merge — no divergent history, the pointer simply moves forward.</li>
+      <li>Three-way merge — both branches moved, so a new merge commit ties them together.</li>
+    </ul>
+  </section>
+ 
+  <section class="main-section" id="Remotes">
+    <header>Remotes</header>
+    <p>A remote is simply another copy of the repository, usually hosted on a server, that your local repository knows how to talk to by name. The default name for the remote you cloned from is <code>origin</code>.</p>
+    <p>Sending local commits to a remote branch:</p>
+    <p><code>git push origin main</code></p>
+    <p>Fetching commits from a remote without merging them into your current branch:</p>
+    <p><code>git fetch origin</code></p>
+    <p><code>git pull</code> is the combination of a fetch followed immediately by a merge (or rebase, depending on configuration) into the branch you're currently on.</p>
+    <p>It's entirely possible, and common in larger projects, to track multiple remotes at once — for instance one for the official project and one for your own fork.</p>
+  </section>
+ 
+  <section class="main-section" id="Undoing_Things">
+    <header>Undoing Things</header>
+    <p>Git keeps almost everything recoverable, but the commands for undoing work are sharp tools and worth understanding before reaching for them under pressure.</p>
+    <p>To unstage a file without losing the edits in your working directory:</p>
+    <p><code>git restore --staged &lt;file&gt;</code></p>
+    <p>To discard local changes entirely and return a file to its last committed state:</p>
+    <p><code>git restore &lt;file&gt;</code></p>
+    <p>Rewriting the most recent commit, often to fix a typo in the message or add a forgotten file, is done with:</p>
+    <p><code>git commit --amend</code></p>
+    <p>Moving the branch pointer backward with <code>git reset</code> can rewrite history, so it's best reserved for commits that haven't been pushed anywhere yet. Once shared, history is best appended to rather than rewritten.</p>
+  </section>
+ 
+</main>
+ 
+</body>
+</html>
